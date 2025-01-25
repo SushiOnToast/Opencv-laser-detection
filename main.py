@@ -48,6 +48,9 @@ def determine_action(center_x, center_y, frame_width, frame_height):
     elif center_x > center_frame_x + threshold:
         return "turn right"
 
+# Initialize the previous action to an empty string or any default action
+previous_action = ""
+
 while True:
     ret, frame = cap.read()
     if not ret:
@@ -55,9 +58,6 @@ while True:
         break
 
     frame_height, frame_width, _ = frame.shape
-
-    # Adjust brightness/contrast
-    frame = cv2.convertScaleAbs(frame)
 
     # Convert to HSV
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -96,12 +96,17 @@ while True:
 
             # Determine action based on coordinates
             action = determine_action(center_x, center_y, frame_width, frame_height)
-            if action == None:
-                action = "stop"
-            print(f"Laser dot detected at: ({center_x}, {center_y}), Action: {action}")
 
-            # Send action as UDP message to ESP32
-            sock.sendto(action.encode(), (UDP_IP, UDP_PORT))
+            if action != previous_action:  # Only send action if it's different
+                if action == None:
+                    action = "stop"
+                print(f"Laser dot detected at: ({center_x}, {center_y}), Action: {action}")
+
+                # Send action as UDP message to ESP32
+                sock.sendto(action.encode(), (UDP_IP, UDP_PORT))
+
+                # Update the previous action
+                previous_action = action
 
     cv2.imshow("ESP32-CAM Stream", frame)
     cv2.imshow("Laser Dot Mask", mask)
@@ -111,3 +116,4 @@ while True:
 
 cap.release()
 cv2.destroyAllWindows()
+
