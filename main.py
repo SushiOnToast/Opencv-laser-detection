@@ -96,6 +96,8 @@ while True:
 
             # Determine action based on coordinates
             action = determine_action(center_x, center_y, frame_width, frame_height)
+            if action == None:
+                action = "stop"
             print(f"Laser dot detected at: ({center_x}, {center_y}), Action: {action}")
 
             # Send action as UDP message to ESP32
