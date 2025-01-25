@@ -1,5 +1,13 @@
 import cv2
 import numpy as np
+import socket
+
+# Define the UDP server address and port (match the ESP32 code)
+UDP_IP = "192.168.4.1"  # ESP32 AP IP address
+UDP_PORT = 1234
+
+# Create a UDP socket
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 stream_url = "http://192.168.4.1/stream"
 cap = cv2.VideoCapture(stream_url)
@@ -89,8 +97,9 @@ while True:
             # Determine action based on coordinates
             action = determine_action(center_x, center_y, frame_width, frame_height)
             print(f"Laser dot detected at: ({center_x}, {center_y}), Action: {action}")
-        else:
-            print("No valid laser dot detected.")
+
+            # Send action as UDP message to ESP32
+            sock.sendto(action.encode(), (UDP_IP, UDP_PORT))
 
     cv2.imshow("ESP32-CAM Stream", frame)
     cv2.imshow("Laser Dot Mask", mask)
